@@ -42,11 +42,14 @@ internal sealed class AuctionDto
     public Domain.Auction.Auction ToAuction()
     {
         var itemListing = Item.ToItemListing();
-        return new(Id,
-                   itemListing,
-                   Buyout,
-                   Quantity,
-                   TimeLeft,
-                   Bid);
+        return new()
+        {
+            Id = Id,
+            ItemListing = itemListing,
+            Buyout = Buyout,
+            Quantity = Quantity,
+            TimeLeft = TimeLeft,
+            Bid = Bid,
+        };
     }
 }

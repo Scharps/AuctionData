@@ -58,8 +58,17 @@ internal sealed class ItemDto
 
     public ItemListing ToItemListing()
     {
-        var modifiers = Modifiers?.Select(m => new Modifier(m.Type, m.Value))
+        var modifiers = Modifiers?.Select(m => new Modifier()
+        {
+            Value = m.Value,
+            Type = m.Type
+        })
             .ToArray();
-        return new(Id, BonusLists ?? Array.Empty<long>(), modifiers ?? Array.Empty<Modifier>());
+        return new()
+        {
+            ItemId = Id,
+            Bonuses = BonusLists ?? Array.Empty<long>(),
+            Modifiers = modifiers ?? Array.Empty<Modifier>()
+        };
     }
 }

@@ -4,7 +4,7 @@ namespace AuctionData.Domain.Auction;
 
 public sealed class Modifier : Entity
 {
-    public long Type { get; private set; }
-    public long Value { get; private set; }
+    public long Type { get; set; }
+    public long Value { get; set; }
 
 }
