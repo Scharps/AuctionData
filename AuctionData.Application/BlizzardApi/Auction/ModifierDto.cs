@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AuctionData.Infrastructure.BlizzardApi.Auction;
+namespace AuctionData.Application.BlizzardApi.Auction;
 
 internal sealed class ModifierDto
 {

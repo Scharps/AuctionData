@@ -1,13 +1,13 @@
 using System.Reflection;
-using AuctionData.Infrastructure.Auctions;
-using AuctionData.Infrastructure.BlizzardApi;
-using AuctionData.Infrastructure.BlizzardApi.Extensions;
+using AuctionData.Application.BlizzardApi;
+using AuctionData.Application.BlizzardApi.Extensions;
+using AuctionData.Application.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOAuthTokenManager(builder.Configuration);
 builder.Services.AddBlizzardClient();
-builder.Services.AddDbContext<AuctionContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("Default"), optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName)));
+builder.Services.AddDbContext<AuctionDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("Default"), optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName)));
 
 var app = builder.Build();
 

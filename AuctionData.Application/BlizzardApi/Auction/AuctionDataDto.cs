@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AuctionData.Infrastructure.BlizzardApi.Auction;
+namespace AuctionData.Application.BlizzardApi.Auction;
 
 internal sealed class AuctionDataDto
 {
@@ -27,7 +27,7 @@ internal sealed class AuctionDataDto
         Commodities = commodities;
     }
 
-    public Domain.Auction.Auction[] GetDomainAuctions()
+    public Entities.Auction.Auction[] GetDomainAuctions()
     {
         return Auctions.Select(a => a.ToAuction()).ToArray();
     }

@@ -1,7 +1,6 @@
 using System.Net;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace AuctionData.Infrastructure.BlizzardApi;
+namespace AuctionData.Application.BlizzardApi;
 
 public static class ClientExtensions
 {
