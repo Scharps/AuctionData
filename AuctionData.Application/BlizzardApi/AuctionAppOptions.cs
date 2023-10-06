@@ -1,4 +1,4 @@
-namespace AuctionData.Infrastructure.BlizzardApi;
+namespace AuctionData.Application.BlizzardApi;
 
 public sealed class AuctionAppOptions
 {

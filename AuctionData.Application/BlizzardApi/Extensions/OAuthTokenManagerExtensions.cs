@@ -1,8 +1,6 @@
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace AuctionData.Infrastructure.BlizzardApi.Extensions;
+namespace AuctionData.Application.BlizzardApi.Extensions;
 
 public static class OAuthTokenManagerExtensions
 {

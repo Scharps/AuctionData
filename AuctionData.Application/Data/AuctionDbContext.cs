@@ -1,5 +1,5 @@
-using AuctionData.Domain.Auction;
 using Microsoft.EntityFrameworkCore;
+using AuctionData.Application.Entities.Auction;
 
 namespace AuctionData.Application.Data;
 

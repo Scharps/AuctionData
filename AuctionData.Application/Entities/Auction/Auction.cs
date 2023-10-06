@@ -1,6 +1,6 @@
 using AuctionData.Domain.Common.Models;
 
-namespace AuctionData.Domain.Auction;
+namespace AuctionData.Application.Entities.Auction;
 
 public sealed class Auction : Entity
 {

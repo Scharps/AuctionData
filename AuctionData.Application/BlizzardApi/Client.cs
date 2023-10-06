@@ -1,10 +1,8 @@
-﻿
-using System.Net.Http.Json;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Web;
-using AuctionData.Infrastructure.BlizzardApi.Auction;
+using AuctionData.Application.BlizzardApi.Auction;
 
-namespace AuctionData.Infrastructure.BlizzardApi;
+namespace AuctionData.Application.BlizzardApi;
 public class Client
 {
     private readonly static JsonSerializerOptions _serializerOptions = new(JsonSerializerDefaults.General)
@@ -25,7 +23,7 @@ public class Client
         _oAuthTokenManager = oAuthTokenManager;
     }
 
-    public async Task<IReadOnlyCollection<Domain.Auction.Auction>> RequestConnectedRealmData(int connectedRealmId)
+    public async Task<IReadOnlyCollection<Application.Entities.Auction.Auction>> RequestConnectedRealmData(int connectedRealmId)
     {
         // Ensure token validity.
         var accessToken = await _oAuthTokenManager.RequestToken();

@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AuctionData.Domain.Auction;
+using AuctionData.Application.Entities.Auction;
 
-namespace AuctionData.Infrastructure.BlizzardApi.Auction;
+namespace AuctionData.Application.BlizzardApi.Auction;
 
 internal sealed class TimeLeftConverter : JsonConverter<TimeLeft>
 {

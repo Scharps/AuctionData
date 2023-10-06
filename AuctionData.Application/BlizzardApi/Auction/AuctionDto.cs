@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using AuctionData.Domain.Auction;
+using AuctionData.Application.Entities.Auction;
 
-namespace AuctionData.Infrastructure.BlizzardApi.Auction;
+namespace AuctionData.Application.BlizzardApi.Auction;
 
 internal sealed class AuctionDto
 {
@@ -39,7 +39,7 @@ internal sealed class AuctionDto
         Bid = bid;
     }
 
-    public Domain.Auction.Auction ToAuction()
+    public Entities.Auction.Auction ToAuction()
     {
         var itemListing = Item.ToItemListing();
         return new()

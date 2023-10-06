@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AuctionData.Domain.Auction;
+namespace AuctionData.Application.Entities.Auction;
 
 public sealed class ItemListing
 {
