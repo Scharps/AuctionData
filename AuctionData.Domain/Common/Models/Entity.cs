@@ -1,33 +1,27 @@
 namespace AuctionData.Domain.Common.Models;
 
-public abstract class Entity<TId> : IEquatable<Entity<TId>>
-    where TId : notnull
+public abstract class Entity : IEquatable<Entity>
 {
-    public TId Id { get; private set; }
+    public long Id { get; set; }
 
-    protected Entity(TId id)
-    {
-        Id = id;
-    }
-
-    public static bool operator ==(Entity<TId> a, Entity<TId> b)
+    public static bool operator ==(Entity a, Entity b)
     {
         return Equals(a, b);
     }
 
-    public static bool operator !=(Entity<TId> a, Entity<TId> b)
+    public static bool operator !=(Entity a, Entity b)
     {
         return !Equals(a, b);
     }
 
-    public bool Equals(Entity<TId>? other)
+    public bool Equals(Entity? other)
     {
         return Equals((object?)other);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is Entity<TId> entity && Id.Equals(entity.Id);
+        return obj is Entity entity && Id.Equals(entity.Id);
     }
 
     public override int GetHashCode()
