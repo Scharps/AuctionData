@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -25,7 +26,7 @@ namespace AuctionData.Application.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Auctions",
+                name: "Auction",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
@@ -38,9 +39,9 @@ namespace AuctionData.Application.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Auctions", x => x.Id);
+                    table.PrimaryKey("PK_Auction", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Auctions_ItemListing_ItemListingId",
+                        name: "FK_Auction_ItemListing_ItemListingId",
                         column: x => x.ItemListingId,
                         principalTable: "ItemListing",
                         principalColumn: "Id",
@@ -67,10 +68,35 @@ namespace AuctionData.Application.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "AuctionLogs",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AuctionId = table.Column<long>(type: "INTEGER", nullable: false),
+                    RetrievedUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuctionLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AuctionLogs_Auction_AuctionId",
+                        column: x => x.AuctionId,
+                        principalTable: "Auction",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_Auctions_ItemListingId",
-                table: "Auctions",
+                name: "IX_Auction_ItemListingId",
+                table: "Auction",
                 column: "ItemListingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AuctionLogs_AuctionId",
+                table: "AuctionLogs",
+                column: "AuctionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Modifier_ItemListingId",
@@ -82,10 +108,13 @@ namespace AuctionData.Application.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Auctions");
+                name: "AuctionLogs");
 
             migrationBuilder.DropTable(
                 name: "Modifier");
+
+            migrationBuilder.DropTable(
+                name: "Auction");
 
             migrationBuilder.DropTable(
                 name: "ItemListing");

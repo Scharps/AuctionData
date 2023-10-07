@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuctionData.Application.Entities.Auction;
 
-public sealed class ItemListing
+public sealed class ItemListing : Entity
 {
     public long ItemId { get; set; }
     public string InternalBonuses { get; private set; } = string.Empty;

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Web;
 using AuctionData.Application.BlizzardApi.Auction;
+using AuctionData.Application.Entities.Auction;
 
 namespace AuctionData.Application.BlizzardApi;
 public class Client
@@ -23,7 +24,7 @@ public class Client
         _oAuthTokenManager = oAuthTokenManager;
     }
 
-    public async Task<IReadOnlyCollection<Application.Entities.Auction.Auction>> RequestConnectedRealmData(int connectedRealmId)
+    public async Task<IReadOnlyCollection<Entities.Auction.AuctionLog>> RequestConnectedRealmData(int connectedRealmId)
     {
         // Ensure token validity.
         var accessToken = await _oAuthTokenManager.RequestToken();
@@ -40,10 +41,14 @@ public class Client
 
         responseMessage.EnsureSuccessStatusCode();
 
+        var now = DateTime.UtcNow;
+
         var auctionData = await responseMessage.Content.ReadFromJsonAsync<AuctionDataDto>(_serializerOptions);
 
         if (auctionData is null) throw new Exception($"Deserialized {nameof(auctionData)} is null.");
 
-        return auctionData.GetDomainAuctions();
+        return auctionData.GetDomainAuctions()
+            .Select(auc => new AuctionLog() { Auction = auc, RetrievedUtc = now })
+            .ToArray();
     }
 }
