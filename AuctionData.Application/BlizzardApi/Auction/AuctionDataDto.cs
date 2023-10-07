@@ -27,8 +27,8 @@ internal sealed class AuctionDataDto
         Commodities = commodities;
     }
 
-    public Entities.Auction.Auction[] GetDomainAuctions()
+    public IEnumerable<Entities.Auction.Auction> GetDomainAuctions()
     {
-        return Auctions.Select(a => a.ToAuction()).ToArray();
+        return Auctions.Select(a => a.ToAuction());
     }
 }

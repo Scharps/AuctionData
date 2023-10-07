@@ -5,7 +5,7 @@ namespace AuctionData.Application.Data;
 
 public sealed class AuctionDbContext : DbContext
 {
-    public DbSet<Auction> Auctions { get; set; } = null!;
+    public DbSet<AuctionLog> AuctionLogs { get; set; } = null!;
 
     public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options)
     { }

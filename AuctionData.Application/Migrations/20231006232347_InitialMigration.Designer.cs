@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionData.Application.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    [Migration("20231001182413_InitialMigration")]
+    [Migration("20231006232347_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace AuctionData.Application.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.Auction", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -45,10 +45,29 @@ namespace AuctionData.Application.Migrations
 
                     b.HasIndex("ItemListingId");
 
-                    b.ToTable("Auctions");
+                    b.ToTable("Auction");
                 });
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.ItemListing", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.AuctionLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AuctionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("RetrievedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.ToTable("AuctionLogs");
+                });
+
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.ItemListing", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +85,7 @@ namespace AuctionData.Application.Migrations
                     b.ToTable("ItemListing");
                 });
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.Modifier", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.Modifier", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -88,9 +107,9 @@ namespace AuctionData.Application.Migrations
                     b.ToTable("Modifier");
                 });
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.Auction", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
-                    b.HasOne("AuctionData.Domain.Auction.ItemListing", "ItemListing")
+                    b.HasOne("AuctionData.Application.Entities.Auction.ItemListing", "ItemListing")
                         .WithMany()
                         .HasForeignKey("ItemListingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -99,14 +118,25 @@ namespace AuctionData.Application.Migrations
                     b.Navigation("ItemListing");
                 });
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.Modifier", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.AuctionLog", b =>
                 {
-                    b.HasOne("AuctionData.Domain.Auction.ItemListing", null)
+                    b.HasOne("AuctionData.Application.Entities.Auction.Auction", "Auction")
+                        .WithMany()
+                        .HasForeignKey("AuctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Auction");
+                });
+
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.Modifier", b =>
+                {
+                    b.HasOne("AuctionData.Application.Entities.Auction.ItemListing", null)
                         .WithMany("Modifiers")
                         .HasForeignKey("ItemListingId");
                 });
 
-            modelBuilder.Entity("AuctionData.Domain.Auction.ItemListing", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.ItemListing", b =>
                 {
                     b.Navigation("Modifiers");
                 });

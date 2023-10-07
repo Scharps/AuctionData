@@ -1,4 +1,4 @@
-namespace AuctionData.Domain.Common.Models;
+namespace AuctionData.Application.Entities;
 
 public abstract class Entity : IEquatable<Entity>
 {
