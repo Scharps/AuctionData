@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AuctionData.Application.BlizzardApi.Auction;
+namespace AuctionData.Application.Services.BlizzardApi.Common;
 
 internal sealed class LinksDto
 {

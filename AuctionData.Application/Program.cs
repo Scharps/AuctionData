@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Reflection;
 using AuctionData.Application.BlizzardApi;
 using AuctionData.Application.BlizzardApi.Extensions;
 using AuctionData.Application.Data;
+using AuctionData.Application.Services.BlizzardApi;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,13 +14,12 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 
 var app = builder.Build();
 
-// using (var scope = app.Services.CreateAsyncScope())
-// {
-//     var client = scope.ServiceProvider.GetRequiredService<Client>();
-//     var dbContext = scope.ServiceProvider.GetRequiredService<AuctionContext>();
-//     var data = await client.RequestConnectedRealmData(1305);
-//     await dbContext.Auctions.AddRangeAsync(data);
-//     await dbContext.SaveChangesAsync();
-// }
+using (var scope = app.Services.CreateAsyncScope())
+{
+    var client = scope.ServiceProvider.GetRequiredService<Client>();
+    var data = await client.GetItemDetails(192791);
+    System.Console.WriteLine(data);
+    Debug.WriteLine(data);
+}
 
 app.Run();

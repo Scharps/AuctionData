@@ -1,4 +1,5 @@
 using System.Text;
+using AuctionData.Application.Services.BlizzardApi;
 
 namespace AuctionData.Application.BlizzardApi.Extensions;
 

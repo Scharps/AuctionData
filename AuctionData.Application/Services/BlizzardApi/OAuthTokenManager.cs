@@ -1,7 +1,7 @@
 using System.Text.Json;
-using static AuctionData.Application.BlizzardApi.OAuthToken;
+using static AuctionData.Application.Services.BlizzardApi.OAuthToken;
 
-namespace AuctionData.Application.BlizzardApi;
+namespace AuctionData.Application.Services.BlizzardApi;
 
 public sealed class OAuthTokenManager
 {
