@@ -14,12 +14,4 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateAsyncScope())
-{
-    var client = scope.ServiceProvider.GetRequiredService<Client>();
-    var data = await client.GetItemDetails(192791);
-    System.Console.WriteLine(data);
-    Debug.WriteLine(data);
-}
-
 app.Run();

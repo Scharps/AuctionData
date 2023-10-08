@@ -1,43 +1,42 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AuctionData.Application.Entities.Auction;
 
 namespace AuctionData.Application.Services.BlizzardApi.Auction;
 
-internal sealed class TimeLeftConverter : JsonConverter<TimeLeft>
+internal sealed class TimeLeftConverter : JsonConverter<TimeLeftDto>
 {
-    public override TimeLeft Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TimeLeftDto Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var value = reader.GetString();
 
         switch (value)
         {
             case "LONG":
-                return TimeLeft.Long;
+                return TimeLeftDto.Long;
             case "VERY_LONG":
-                return TimeLeft.VeryLong;
+                return TimeLeftDto.VeryLong;
             case "MEDIUM":
-                return TimeLeft.Medium;
+                return TimeLeftDto.Medium;
             case "SHORT":
-                return TimeLeft.Short;
+                return TimeLeftDto.Short;
         }
         throw new Exception($"Cannot unmarshal type TimeLeft of value: {value}.");
     }
 
-    public override void Write(Utf8JsonWriter writer, TimeLeft value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, TimeLeftDto value, JsonSerializerOptions options)
     {
         switch (value)
         {
-            case TimeLeft.Long:
+            case TimeLeftDto.Long:
                 JsonSerializer.Serialize(writer, "LONG", options);
                 return;
-            case TimeLeft.Medium:
+            case TimeLeftDto.Medium:
                 JsonSerializer.Serialize(writer, "MEDIUM", options);
                 return;
-            case TimeLeft.Short:
+            case TimeLeftDto.Short:
                 JsonSerializer.Serialize(writer, "SHORT", options);
                 return;
-            case TimeLeft.VeryLong:
+            case TimeLeftDto.VeryLong:
                 JsonSerializer.Serialize(writer, "VERY_LONG", options);
                 return;
         }
