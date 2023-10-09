@@ -1,6 +1,4 @@
 using System.Text.Json.Serialization;
-using AuctionData.Application.Entities.Auction;
-using SQLitePCL;
 
 namespace AuctionData.Application.Services.BlizzardApi.Auction;
 

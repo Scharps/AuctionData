@@ -4,6 +4,8 @@ using AuctionData.Application.BlizzardApi.Item;
 using AuctionData.Application.Entities.Auction;
 using AuctionData.Application.Entities.Item;
 using AuctionData.Application.Services.BlizzardApi.Auction;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AuctionData.Application.Services.BlizzardApi;
 public class Client
@@ -26,54 +28,75 @@ public class Client
         _oAuthTokenManager = oAuthTokenManager;
     }
 
-    public async Task<IReadOnlyCollection<AuctionLog>> RequestConnectedRealmData(int connectedRealmId)
+    public async Task<IReadOnlyCollection<AuctionLog>> RequestConnectedRealmDataAsync(int connectedRealmId)
     {
-        // Ensure token validity.
-        var accessToken = await _oAuthTokenManager.RequestToken();
+        var now = DateTime.Now;
 
-        var query = HttpUtility.ParseQueryString(string.Empty);
-        query["namespace"] = "dynamic-eu";
-        query["access_token"] = accessToken.AccessToken;
-        var queryString = query.ToString();
-
-        // HttpCompletionOption used to avoid timeout on content
-        var responseMessage = await _httpClient.GetAsync(
-            $"/data/wow/connected-realm/{connectedRealmId}/auctions?{queryString}",
-            HttpCompletionOption.ResponseHeadersRead);
-
-        responseMessage.EnsureSuccessStatusCode();
-
-        var now = DateTime.UtcNow;
-
-        var auctionData = await responseMessage.Content.ReadFromJsonAsync<AuctionDataDto>(_serializerOptions);
-
-        if (auctionData is null) throw new Exception($"Deserialized {nameof(auctionData)} is null.");
+        var auctionData = await RequestDataAsync<AuctionDataDto>(
+            NamespaceCategory.Dynamic,
+            Region.EU,
+            $"/data/wow/connected-realm/{connectedRealmId}/auctions");
 
         return auctionData.GetDomainAuctions()
             .Select(auc => new AuctionLog() { Auction = auc, RetrievedUtc = now })
             .ToArray();
     }
 
-    public async Task<Item> GetItemDetails(long itemId)
+    public async Task<Item> GetItemDetailsAsync(long itemId)
+    {
+        var itemDataDto = await RequestDataAsync<ItemDataDto>(
+            NamespaceCategory.Static,
+            Region.EU,
+            $"/data/wow/item/{itemId}");
+
+        return itemDataDto.ToItem();
+    }
+
+    private async Task<TDto> RequestDataAsync<TDto>(NamespaceCategory namespaceCategory,
+                                                    Region region,
+                                                    string requestUri)
     {
         var accessToken = await _oAuthTokenManager.RequestToken();
 
+        string @namespace = CreateNamespace(namespaceCategory, region);
         var query = HttpUtility.ParseQueryString(string.Empty);
-        query["namespace"] = "static-eu";
+        query["namespace"] = @namespace;
         query["access_token"] = accessToken.AccessToken;
         query["locale"] = "en_US";
-        var queryString = query.ToString();
+
+        var uri = requestUri + $"?{query}";
 
         var responseMessage = await _httpClient.GetAsync(
-            $"/data/wow/item/{itemId}?{queryString}",
-            HttpCompletionOption.ResponseHeadersRead);
+            uri,
+            HttpCompletionOption.ResponseHeadersRead
+        );
 
         responseMessage.EnsureSuccessStatusCode();
 
-        var itemDataDto = await responseMessage.Content.ReadFromJsonAsync<ItemDataDto>(_serializerOptions);
+        var dto = await responseMessage.Content.ReadFromJsonAsync<TDto>(_serializerOptions);
 
-        if (itemDataDto is null) throw new Exception($"Deserialized {nameof(itemDataDto)} is null");
+        if (dto is null) throw new InvalidOperationException("Deserialization of json content yeilded a null object.");
 
-        return itemDataDto.ToItem();
+        return dto;
+    }
+
+    private static string CreateNamespace(NamespaceCategory namespaceCategory, Region region)
+    {
+        return $"{namespaceCategory.ToString().ToLower()}-{region.ToString().ToLower()}";
+    }
+
+    private enum NamespaceCategory
+    {
+        Static,
+        Dynamic,
+        Profile
+    }
+
+    private enum Region
+    {
+        US,
+        EU,
+        KR,
+        TW
     }
 }
