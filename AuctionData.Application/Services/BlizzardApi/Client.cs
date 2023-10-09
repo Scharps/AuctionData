@@ -59,12 +59,8 @@ public class Client
         var accessToken = await _oAuthTokenManager.RequestToken();
 
         string @namespace = CreateNamespace(namespaceCategory, region);
-        var query = HttpUtility.ParseQueryString(string.Empty);
-        query["namespace"] = @namespace;
-        query["access_token"] = accessToken.AccessToken;
-        query["locale"] = "en_US";
 
-        var uri = requestUri + $"?{query}";
+        string uri = BuildUri(requestUri, accessToken, @namespace);
 
         var responseMessage = await _httpClient.GetAsync(
             uri,
@@ -78,6 +74,17 @@ public class Client
         if (dto is null) throw new InvalidOperationException("Deserialization of json content yeilded a null object.");
 
         return dto;
+    }
+
+    private static string BuildUri(string requestUri, OAuthToken accessToken, string @namespace)
+    {
+        var query = HttpUtility.ParseQueryString(string.Empty);
+        query["namespace"] = @namespace;
+        query["access_token"] = accessToken.AccessToken;
+        query["locale"] = "en_US";
+
+        var uri = requestUri + $"?{query}";
+        return uri;
     }
 
     private static string CreateNamespace(NamespaceCategory namespaceCategory, Region region)
