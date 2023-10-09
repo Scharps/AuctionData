@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using AuctionData.Application.Services.BlizzardApi.Common;
 
-namespace AuctionData.Application.BlizzardApi.Auction;
+namespace AuctionData.Application.Services.BlizzardApi.Auction;
 
 internal sealed class AuctionDataDto
 {

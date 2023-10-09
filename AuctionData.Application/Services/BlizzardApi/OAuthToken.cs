@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AuctionData.Application.BlizzardApi;
+namespace AuctionData.Application.Services.BlizzardApi;
 
 /// <summary>
 /// Todo: Move to Domain layer

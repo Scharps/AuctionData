@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
-using AuctionData.Application.Entities.Auction;
 
-namespace AuctionData.Application.BlizzardApi.Auction;
+namespace AuctionData.Application.Services.BlizzardApi.Auction;
 
 internal sealed class AuctionDto
 {
@@ -18,7 +17,7 @@ internal sealed class AuctionDto
     public long Quantity { get; }
 
     [JsonPropertyName("time_left")]
-    public TimeLeft TimeLeft { get; }
+    public TimeLeftDto TimeLeft { get; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("bid")]
@@ -28,7 +27,7 @@ internal sealed class AuctionDto
                    ItemDto item,
                    long buyout,
                    long quantity,
-                   TimeLeft timeLeft,
+                   TimeLeftDto timeLeft,
                    long? bid = null)
     {
         Id = id;
@@ -48,7 +47,14 @@ internal sealed class AuctionDto
             ItemListing = itemListing,
             Buyout = Buyout,
             Quantity = Quantity,
-            TimeLeft = TimeLeft,
+            TimeLeft = TimeLeft switch
+            {
+                TimeLeftDto.Long => Entities.Auction.TimeLeft.Long,
+                TimeLeftDto.Medium => Entities.Auction.TimeLeft.Medium,
+                TimeLeftDto.Short => Entities.Auction.TimeLeft.Short,
+                TimeLeftDto.VeryLong => Entities.Auction.TimeLeft.VeryLong,
+                _ => throw new NotSupportedException($"Unknown TimeLeft duration: {TimeLeft}")
+            },
             Bid = Bid,
         };
     }
