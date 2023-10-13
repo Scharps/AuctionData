@@ -34,13 +34,12 @@ public sealed class OAuthTokenManager
 
             var result = await _httpClient.PostAsync("/token", _content);
             result.EnsureSuccessStatusCode();
-            var json = await result.Content.ReadAsStringAsync();
-            var dto = JsonSerializer.Deserialize<OAuthTokenDto>(json);
+            var dto = await result.Content.ReadFromJsonAsync<OAuthTokenDto>();
             _oAuthToken = dto!.ToOAuthToken();
         }
         // Else, return the token
         return _oAuthToken!;
     }
 
-    private bool TokenExpired() => _oAuthToken == null || _oAuthToken.Expiry > DateTime.Now;
+    private bool TokenExpired() => _oAuthToken == null || _oAuthToken.Expiry < DateTime.Now;
 }
