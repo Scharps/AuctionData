@@ -104,6 +104,21 @@ namespace AuctionData.Application.Migrations
                     b.ToTable("Modifier");
                 });
 
+            modelBuilder.Entity("AuctionData.Application.Entities.Item.Item", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Items");
+                });
+
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
                     b.HasOne("AuctionData.Application.Entities.Auction.ItemListing", "ItemListing")

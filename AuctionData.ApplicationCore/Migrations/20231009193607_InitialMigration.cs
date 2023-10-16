@@ -26,6 +26,19 @@ namespace AuctionData.Application.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Items",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Items", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Auction",
                 columns: table => new
                 {
@@ -109,6 +122,9 @@ namespace AuctionData.Application.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AuctionLogs");
+
+            migrationBuilder.DropTable(
+                name: "Items");
 
             migrationBuilder.DropTable(
                 name: "Modifier");

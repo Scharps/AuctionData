@@ -1,7 +1,6 @@
 using System.Text;
-using AuctionData.Application.Services.BlizzardApi;
 
-namespace AuctionData.Application.BlizzardApi.Extensions;
+namespace AuctionData.Application.Services.BlizzardApi.Extensions;
 
 public static class OAuthTokenManagerExtensions
 {
@@ -9,8 +8,8 @@ public static class OAuthTokenManagerExtensions
     {
         services.AddHttpClient<OAuthTokenManager>(client =>
         {
-            var clientId = config["BlizzardAppCredentialOptions:ClientId"];
-            var clientSecret = config["BlizzardAppCredentialOptions:ClientSecret"];
+            var clientId = config["BlizzardAppOptions:ClientId"];
+            var clientSecret = config["BlizzardAppOptions:ClientSecret"];
 
             var credentialData = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
             var base64 = Convert.ToBase64String(credentialData);
