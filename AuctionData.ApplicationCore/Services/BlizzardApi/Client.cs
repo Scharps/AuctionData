@@ -66,7 +66,7 @@ public class Client
 
         while (itemQueue.TryDequeue(out var itemId))
         {
-            tasks.Add(WaitAndFetchItem(itemId));
+            tasks.Add(WaitAndFetchItem(itemId, itemQueue, throttler));
 
             while (tasks.Any(t => t.Status == TaskStatus.RanToCompletion) || (tasks.Count != 0 && itemQueue.IsEmpty))
             {
@@ -81,27 +81,27 @@ public class Client
                 }
             }
         }
+    }
 
-        async Task<Item> WaitAndFetchItem(long itemId)
+    private async Task<Item> WaitAndFetchItem(long itemId, ConcurrentQueue<long> itemQueue, SemaphoreSlim throttler)
+    {
+        await throttler.WaitAsync();
+        try
         {
-            await throttler!.WaitAsync();
-            try
+            return await GetItemAsync(itemId);
+        }
+        catch (HttpRequestException e)
+        {
+            // The Blizzard item API has some missing items. These will be ignored for now #19
+            if (e.StatusCode != HttpStatusCode.NotFound)
             {
-                return await GetItemAsync(itemId);
+                itemQueue.Enqueue(itemId);
             }
-            catch (HttpRequestException e)
-            {
-                // The Blizzard item API has some missing items. These will be ignored for now #19
-                if (e.StatusCode != HttpStatusCode.NotFound)
-                {
-                    itemQueue!.Enqueue(itemId);
-                }
-                throw;
-            }
-            finally
-            {
-                throttler!.Release();
-            }
+            throw;
+        }
+        finally
+        {
+            throttler.Release();
         }
     }
 
