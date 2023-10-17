@@ -22,14 +22,12 @@ public class Client
         }
     };
     private readonly HttpClient _httpClient;
-    private readonly ILogger<Client> testLogger;
 
-    public Client(HttpClient httpClient, ILogger<Client> testLogger)
+    public Client(HttpClient httpClient)
     {
         if (httpClient.BaseAddress == null)
             throw new Exception("Base address of the HttpClient must be configured");
         _httpClient = httpClient;
-        this.testLogger = testLogger;
     }
 
     public async Task<IReadOnlyCollection<AuctionLog>> RequestConnectedRealmDataAsync(int connectedRealmId)
@@ -56,6 +54,8 @@ public class Client
         return itemDataDto.ToItem();
     }
 
+    // TODO: Exception handling should not be done within this method. 
+    // But the IDs of the items should be passed with the corresponding exception
     public async IAsyncEnumerable<Item> GetItemsAsync(IEnumerable<long> itemIds, int maxDegreeOfParallelism)
     {
         if (!itemIds.Any()) yield break;
