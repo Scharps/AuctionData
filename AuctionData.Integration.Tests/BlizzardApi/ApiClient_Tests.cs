@@ -16,9 +16,11 @@ public class ApiClient_Tests : TestBed<ApiClientFixture>
     public async Task GetItemsAsync_Test(params int[] itemIds)
     {
         var client = _fixture.GetService<Client>(_testOutputHelper);
+        if (client is null) throw new NullReferenceException(nameof(client));
+
         var items = new List<Item>();
 
-        await foreach (var item in client!.GetItemsAsync(itemIds.Select(n => (long)n), 5))
+        await foreach (var item in client.GetItemsAsync(itemIds.Select(n => (long)n), 5))
         {
             items.Add(item);
         }
