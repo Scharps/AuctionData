@@ -15,8 +15,7 @@ public class ApiClient_Tests : TestBed<ApiClientFixture>
     [MemberData(nameof(GetItemsAsync_Test_Data))]
     public async Task GetItemsAsync_Test(params int[] itemIds)
     {
-        var client = _fixture.GetService<Client>(_testOutputHelper);
-        if (client is null) throw new NullReferenceException(nameof(client));
+        Client client = GetClient();
 
         var items = new List<Item>();
 
@@ -28,6 +27,12 @@ public class ApiClient_Tests : TestBed<ApiClientFixture>
         items.Count.Should().Be(4);
     }
 
+    private Client GetClient()
+    {
+        var client = _fixture.GetService<Client>(_testOutputHelper);
+        if (client is null) throw new NullReferenceException(nameof(client));
+        return client;
+    }
 
     public static IEnumerable<object[]> GetItemsAsync_Test_Data()
     {
