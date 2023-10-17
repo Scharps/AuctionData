@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using AuctionData.Application.Data;
 using AuctionData.Application.Entities.Auction;
-using AuctionData.Application.Entities.Item;
 using AuctionData.Application.Services.BlizzardApi;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +25,36 @@ public static class ProcessAuctionData
         {
             var auctionData = await _client.RequestConnectedRealmDataAsync(request.ConnectedRealmId);
 
+            await AddUnknownItems(auctionData, cancellationToken);
+
+            await LinkAssociatedItemListings(auctionData, cancellationToken);
+
+            _dbContext.AddRange(auctionData, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task LinkAssociatedItemListings(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
+        {
+            var oldAndNew = await _dbContext.AuctionLogs
+                .Join(
+                    auctionData,
+                    logs => logs.Auction.Id,
+                    data => data.Auction.Id,
+                    (existing, @new) => new
+                    {
+                        Existing = existing.Auction,
+                        New = @new.Auction
+                    }
+                )
+                .ToListAsync();
+            foreach (var pair in oldAndNew)
+            {
+                pair.New.ItemListing = pair.Existing.ItemListing;
+            }
+        }
+
+        private async Task AddUnknownItems(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
+        {
             var itemIds = auctionData.Select(auc => auc.Auction.ItemListing.ItemId).Distinct().ToList();
 
             var knownItemIds = await _dbContext.Items.Where(item => itemIds.Contains(item.Id)).Select(item => item.Id).ToListAsync();
@@ -37,52 +65,50 @@ public static class ProcessAuctionData
             {
                 _dbContext.Items.Add(item);
             }
-            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
 
+    public sealed class ProcessAuctionDataHostedService : IHostedService, IDisposable
+    {
+        private Timer? _timer = null!;
+        private IServiceProvider _serviceProvider;
+        private IMediator _mediator;
 
-            foreach (var auction in auctionData)
-            {
-                var t1 = FindAssociatedItemListingIfExists(auction, cancellationToken);
-
-                var t2 = RequestItemDetailsIfUnknown(auction.Auction.ItemListing.ItemId, cancellationToken);
-
-                await Task.WhenAll(t1, t2);
-            }
-
-            _dbContext.AddRange(auctionData, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+        public ProcessAuctionDataHostedService(IMediator mediator, IServiceProvider serviceProvider)
+        {
+            _mediator = mediator;
+            _serviceProvider = serviceProvider;
         }
 
-        /// <summary>
-        /// Requests the item details from the Blizzard API if the <see cref="Item"/> is not contained within the DbContext and adds the it.  
-        /// </summary>
-        /// <param name="auction"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        private async Task RequestItemDetailsIfUnknown(long itemId, CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (!await _dbContext.Items.AnyAsync(item => item.Id == itemId, cancellationToken))
+            _timer = new Timer(
+                RequestAuctionDataProcessing,
+                null,
+                TimeSpan.Zero,
+                TimeSpan.FromHours(1));
+
+            return Task.CompletedTask;
+        }
+
+        private async void RequestAuctionDataProcessing(object? state)
+        {
+            await using (var scope = _serviceProvider.CreateAsyncScope())
             {
-                var item = await _client.GetItemAsync(itemId);
-                _dbContext.Items.Add(item);
+                await _mediator.Send(new ProcessAuctionDataCommand(1305));
             }
         }
 
-        /// <summary>
-        /// Finds an auction with the same ID within the database and assigns the <see cref="Auction.ItemListing"/> within <paramref name="auction"/> if one exists.
-        /// </summary>
-        /// <param name="auction">The auction to search for.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>A task representing this process.</returns>
-        private async Task FindAssociatedItemListingIfExists(AuctionLog auction, CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            var itemListing = await _dbContext.AuctionLogs.Where(al => al.Auction.Id == auction.Id)
-                .Select(al => al.Auction.ItemListing)
-                .SingleOrDefaultAsync(cancellationToken);
-            if (itemListing is not null)
-            {
-                auction.Auction.ItemListing = itemListing;
-            }
+            _timer?.Change(Timeout.Infinite, 0);
+
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
         }
     }
 }
