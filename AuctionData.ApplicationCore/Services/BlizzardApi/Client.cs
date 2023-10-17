@@ -58,6 +58,8 @@ public class Client
 
     public async IAsyncEnumerable<Item> GetItemsAsync(IEnumerable<long> itemIds, int maxDegreeOfParallelism)
     {
+        if (!itemIds.Any()) yield break;
+
         var itemQueue = new ConcurrentQueue<long>(itemIds);
         var tasks = new List<Task<Item>>();
         var throttler = new SemaphoreSlim(maxDegreeOfParallelism);
@@ -66,21 +68,14 @@ public class Client
         {
             tasks.Add(WaitAndFetchItem(itemId));
 
-            while (tasks.Where(t => t.Status == TaskStatus.RanToCompletion).Any() || itemQueue.IsEmpty)
+            while (tasks.Any(t => t.Status == TaskStatus.RanToCompletion) || (tasks.Count != 0 && itemQueue.IsEmpty))
             {
                 Task<Item>? completedTask = null;
-                try
-                {
-                    completedTask = await Task.WhenAny(tasks);
-                    tasks.Remove(completedTask);
-                }
-                // catch (HttpRequestException e)
-                // {
-                //     // Ignore items that have a 404 response for now. These need to be reported to Blizzard.
-                //     // Add the IDs of items that have not completed successfully back to the queue
-                // }
-                catch { }
-                if (completedTask is not null)
+
+                completedTask = await Task.WhenAny(tasks);
+                tasks.Remove(completedTask);
+
+                if (completedTask is not null && completedTask.Status == TaskStatus.RanToCompletion)
                 {
                     yield return await completedTask;
                 }
@@ -96,6 +91,7 @@ public class Client
             }
             catch (HttpRequestException e)
             {
+                // The Blizzard item API has some missing items. These will be ignored for now #19
                 if (e.StatusCode != HttpStatusCode.NotFound)
                 {
                     itemQueue!.Enqueue(itemId);
