@@ -30,40 +30,26 @@ public static class ProcessAuctionData
 
             await LinkAssociatedItemListings(auctionData, cancellationToken);
 
-            _dbContext.AddRange(auctionData, cancellationToken);
+            _dbContext.AuctionLogs.AddRange(auctionData);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         private async Task LinkAssociatedItemListings(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
         {
-            var existingAuctions = await _dbContext.AuctionLogs
-                .Where(log => auctionData.Select(data => data.Auction.Id).Contains(log.Auction.Id))
+            var auctionIds = auctionData.Select(log => log.Auction.Id).ToList();
+
+            var existingAuctions = _dbContext.AuctionLogs
+                .Where(log => auctionIds.Contains(log.Auction.Id))
                 .Select(log => log.Auction)
-                .GroupBy(auction =>
-                    new
-                    {
-                        auction.Id,
-                        auction.ItemListing
-                    }
-                )
-                .Select(g => g.Key)
-                .ToArrayAsync(cancellationToken);
+                .GroupBy(auc => auc.Id)
+                .Select(group => group.First());
 
-            var oldAndNew = existingAuctions
-                .Join(
-                    auctionData.Select(data => data.Auction),
-                    existingAuction => existingAuction.Id,
-                    data => data.Id,
-                    (Existing, New) => new
-                    {
-                        Existing,
-                        New
-                    }
-                );
+            var existingAuctionsDictionary = await existingAuctions.ToDictionaryAsync(auc => auc.Id, auc => auc.ItemListing.Id, cancellationToken);
 
-            foreach (var pair in oldAndNew)
+
+            foreach (var al in auctionData)
             {
-                pair.New.ItemListing = pair.Existing.ItemListing;
+                al.Auction.ItemListing.Id = existingAuctionsDictionary.GetValueOrDefault(al.Auction.Id);
             }
         }
 
