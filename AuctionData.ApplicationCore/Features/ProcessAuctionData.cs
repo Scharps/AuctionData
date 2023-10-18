@@ -3,6 +3,7 @@ using AuctionData.Application.Entities.Auction;
 using AuctionData.Application.Services.BlizzardApi;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace AuctionData.Application.Features;
 
@@ -35,18 +36,31 @@ public static class ProcessAuctionData
 
         private async Task LinkAssociatedItemListings(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
         {
-            var oldAndNew = await _dbContext.AuctionLogs
-                .Join(
-                    auctionData,
-                    logs => logs.Auction.Id,
-                    data => data.Auction.Id,
-                    (existing, @new) => new
+            var existingAuctions = await _dbContext.AuctionLogs
+                .Where(log => auctionData.Select(data => data.Auction.Id).Contains(log.Auction.Id))
+                .Select(log => log.Auction)
+                .GroupBy(auction =>
+                    new
                     {
-                        Existing = existing.Auction,
-                        New = @new.Auction
+                        auction.Id,
+                        auction.ItemListing
                     }
                 )
-                .ToListAsync();
+                .Select(g => g.Key)
+                .ToArrayAsync(cancellationToken);
+
+            var oldAndNew = existingAuctions
+                .Join(
+                    auctionData.Select(data => data.Auction),
+                    existingAuction => existingAuction.Id,
+                    data => data.Id,
+                    (Existing, New) => new
+                    {
+                        Existing,
+                        New
+                    }
+                );
+
             foreach (var pair in oldAndNew)
             {
                 pair.New.ItemListing = pair.Existing.ItemListing;
@@ -71,12 +85,10 @@ public static class ProcessAuctionData
     public sealed class ProcessAuctionDataHostedService : IHostedService, IDisposable
     {
         private Timer? _timer = null!;
-        private IServiceProvider _serviceProvider;
-        private IMediator _mediator;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ProcessAuctionDataHostedService(IMediator mediator, IServiceProvider serviceProvider)
+        public ProcessAuctionDataHostedService(IServiceProvider serviceProvider)
         {
-            _mediator = mediator;
             _serviceProvider = serviceProvider;
         }
 
@@ -93,10 +105,9 @@ public static class ProcessAuctionData
 
         private async void RequestAuctionDataProcessing(object? state)
         {
-            await using (var scope = _serviceProvider.CreateAsyncScope())
-            {
-                await _mediator.Send(new ProcessAuctionDataCommand(1305));
-            }
+            await using var scope = _serviceProvider.CreateAsyncScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Send(new ProcessAuctionDataCommand(1305));
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
