@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionData.Application.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    [Migration("20231006232347_InitialMigration")]
+    [Migration("20231009193607_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -105,6 +105,21 @@ namespace AuctionData.Application.Migrations
                     b.HasIndex("ItemListingId");
 
                     b.ToTable("Modifier");
+                });
+
+            modelBuilder.Entity("AuctionData.Application.Entities.Item.Item", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
