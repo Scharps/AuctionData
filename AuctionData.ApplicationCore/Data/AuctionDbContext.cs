@@ -9,7 +9,7 @@ public sealed class AuctionDbContext : DbContext
     public DbSet<Auction> Auctions { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
     public DbSet<Modifier> Modifiers { get; set; } = null!;
-    public DbSet<ConnectedRealm> ConnectedRealms { get; set; } = null!;
+    public DbSet<RegionAndRealmGroup> ConnectedRealms { get; set; } = null!;
 
     public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options)
     { }
