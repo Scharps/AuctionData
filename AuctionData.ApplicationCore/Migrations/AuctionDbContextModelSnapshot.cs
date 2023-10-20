@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AuctionData.Application.Migrations
+namespace AuctionData.ApplicationCore.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
     partial class AuctionDbContextModelSnapshot : ModelSnapshot
@@ -29,46 +29,14 @@ namespace AuctionData.Application.Migrations
                     b.Property<long>("Buyout")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("ItemListingId")
+                    b.Property<long>("ConnectedRealmId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("Quantity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TimeLeft")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemListingId");
-
-                    b.ToTable("Auction");
-                });
-
-            modelBuilder.Entity("AuctionData.Application.Entities.Auction.AuctionLog", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("AuctionId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("RetrievedUtc")
+                    b.Property<DateTimeOffset>("ExpectedExpiry")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuctionId");
-
-                    b.ToTable("AuctionLogs");
-                });
-
-            modelBuilder.Entity("AuctionData.Application.Entities.Auction.ItemListing", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTime>("FirstSeen")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("InternalBonuses")
                         .IsRequired()
@@ -77,9 +45,19 @@ namespace AuctionData.Application.Migrations
                     b.Property<long>("ItemId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Quantity")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
-                    b.ToTable("ItemListing");
+                    b.HasIndex("ConnectedRealmId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("Auctions");
                 });
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Modifier", b =>
@@ -88,7 +66,7 @@ namespace AuctionData.Application.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("ItemListingId")
+                    b.Property<long?>("AuctionId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("Type")
@@ -99,9 +77,26 @@ namespace AuctionData.Application.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ItemListingId");
+                    b.HasIndex("AuctionId");
 
-                    b.ToTable("Modifier");
+                    b.ToTable("Modifiers");
+                });
+
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.RegionAndRealmGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Region")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConnectedRealms");
                 });
 
             modelBuilder.Entity("AuctionData.Application.Entities.Item.Item", b =>
@@ -121,34 +116,31 @@ namespace AuctionData.Application.Migrations
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
-                    b.HasOne("AuctionData.Application.Entities.Auction.ItemListing", "ItemListing")
+                    b.HasOne("AuctionData.Application.Entities.Auction.RegionAndRealmGroup", "ConnectedRealm")
                         .WithMany()
-                        .HasForeignKey("ItemListingId")
+                        .HasForeignKey("ConnectedRealmId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ItemListing");
-                });
-
-            modelBuilder.Entity("AuctionData.Application.Entities.Auction.AuctionLog", b =>
-                {
-                    b.HasOne("AuctionData.Application.Entities.Auction.Auction", "Auction")
+                    b.HasOne("AuctionData.Application.Entities.Item.Item", "Item")
                         .WithMany()
-                        .HasForeignKey("AuctionId")
+                        .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Auction");
+                    b.Navigation("ConnectedRealm");
+
+                    b.Navigation("Item");
                 });
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Modifier", b =>
                 {
-                    b.HasOne("AuctionData.Application.Entities.Auction.ItemListing", null)
+                    b.HasOne("AuctionData.Application.Entities.Auction.Auction", null)
                         .WithMany("Modifiers")
-                        .HasForeignKey("ItemListingId");
+                        .HasForeignKey("AuctionId");
                 });
 
-            modelBuilder.Entity("AuctionData.Application.Entities.Auction.ItemListing", b =>
+            modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
                     b.Navigation("Modifiers");
                 });

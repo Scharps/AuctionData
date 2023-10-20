@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AuctionData.Application.Migrations
+namespace AuctionData.ApplicationCore.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration
@@ -12,17 +12,17 @@ namespace AuctionData.Application.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ItemListing",
+                name: "ConnectedRealms",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ItemId = table.Column<long>(type: "INTEGER", nullable: false),
-                    InternalBonuses = table.Column<string>(type: "TEXT", nullable: false)
+                    GroupId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Region = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ItemListing", x => x.Id);
+                    table.PrimaryKey("PK_ConnectedRealms", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -39,101 +39,88 @@ namespace AuctionData.Application.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Auction",
+                name: "Auctions",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ItemListingId = table.Column<long>(type: "INTEGER", nullable: false),
+                    ConnectedRealmId = table.Column<long>(type: "INTEGER", nullable: false),
+                    FirstSeen = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LastSeen = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ItemId = table.Column<long>(type: "INTEGER", nullable: false),
+                    InternalBonuses = table.Column<string>(type: "TEXT", nullable: false),
+                    Bid = table.Column<long>(type: "INTEGER", nullable: true),
                     Buyout = table.Column<long>(type: "INTEGER", nullable: false),
                     Quantity = table.Column<long>(type: "INTEGER", nullable: false),
-                    TimeLeft = table.Column<int>(type: "INTEGER", nullable: false),
-                    Bid = table.Column<long>(type: "INTEGER", nullable: true)
+                    ExpectedExpiry = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Auction", x => x.Id);
+                    table.PrimaryKey("PK_Auctions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Auction_ItemListing_ItemListingId",
-                        column: x => x.ItemListingId,
-                        principalTable: "ItemListing",
+                        name: "FK_Auctions_ConnectedRealms_ConnectedRealmId",
+                        column: x => x.ConnectedRealmId,
+                        principalTable: "ConnectedRealms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Auctions_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Modifier",
+                name: "Modifiers",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Type = table.Column<long>(type: "INTEGER", nullable: false),
                     Value = table.Column<long>(type: "INTEGER", nullable: false),
-                    ItemListingId = table.Column<long>(type: "INTEGER", nullable: true)
+                    AuctionId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Modifier", x => x.Id);
+                    table.PrimaryKey("PK_Modifiers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Modifier_ItemListing_ItemListingId",
-                        column: x => x.ItemListingId,
-                        principalTable: "ItemListing",
+                        name: "FK_Modifiers_Auctions_AuctionId",
+                        column: x => x.AuctionId,
+                        principalTable: "Auctions",
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "AuctionLogs",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuctionId = table.Column<long>(type: "INTEGER", nullable: false),
-                    RetrievedUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AuctionLogs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AuctionLogs_Auction_AuctionId",
-                        column: x => x.AuctionId,
-                        principalTable: "Auction",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_Auctions_ConnectedRealmId",
+                table: "Auctions",
+                column: "ConnectedRealmId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Auction_ItemListingId",
-                table: "Auction",
-                column: "ItemListingId");
+                name: "IX_Auctions_ItemId",
+                table: "Auctions",
+                column: "ItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuctionLogs_AuctionId",
-                table: "AuctionLogs",
+                name: "IX_Modifiers_AuctionId",
+                table: "Modifiers",
                 column: "AuctionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Modifier_ItemListingId",
-                table: "Modifier",
-                column: "ItemListingId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AuctionLogs");
+                name: "Modifiers");
+
+            migrationBuilder.DropTable(
+                name: "Auctions");
+
+            migrationBuilder.DropTable(
+                name: "ConnectedRealms");
 
             migrationBuilder.DropTable(
                 name: "Items");
-
-            migrationBuilder.DropTable(
-                name: "Modifier");
-
-            migrationBuilder.DropTable(
-                name: "Auction");
-
-            migrationBuilder.DropTable(
-                name: "ItemListing");
         }
     }
 }
