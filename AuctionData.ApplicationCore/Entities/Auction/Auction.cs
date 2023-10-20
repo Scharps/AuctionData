@@ -6,7 +6,7 @@ public sealed class Auction : Entity
 {
     public RegionAndRealmGroup ConnectedRealm { get; set; } = null!;
     public DateTime FirstSeen { get; set; }
-    public DateTime? LastSeen { get; set; }
+    public DateTime LastSeen { get; set; }
     public Item.Item Item { get; set; } = null!;
     public string InternalBonuses { get; private set; } = string.Empty;
     [NotMapped]
@@ -25,7 +25,7 @@ public sealed class Auction : Entity
     public long? Bid { get; set; }
     public long Buyout { get; set; }
     public long Quantity { get; set; }
-    public DateTime ExpectedExpiry { get; set; }
+    public DateTimeOffset ExpectedExpiry { get; set; }
 }
 
 public sealed class RegionAndRealmGroup : Entity

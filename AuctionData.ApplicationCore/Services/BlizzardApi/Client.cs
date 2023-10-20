@@ -1,14 +1,9 @@
 ﻿using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Web;
 using AuctionData.Application.BlizzardApi.Item;
-using AuctionData.Application.Entities.Auction;
 using AuctionData.Application.Entities.Item;
 using AuctionData.Application.Services.BlizzardApi.Auction;
-using Microsoft.VisualBasic;
-using System;
-using Microsoft.AspNetCore.Http.Features;
 using System.Net;
 
 namespace AuctionData.Application.Services.BlizzardApi;
@@ -30,7 +25,7 @@ public class Client
         _httpClient = httpClient;
     }
 
-    public async Task<IReadOnlyCollection<AuctionLog>> RequestConnectedRealmDataAsync(int connectedRealmId)
+    public async Task<IReadOnlyCollection<Entities.Auction.Auction>> RequestConnectedRealmDataAsync(int connectedRealmId)
     {
         var now = DateTime.Now;
 
@@ -39,9 +34,7 @@ public class Client
             Region.EU,
             $"/data/wow/connected-realm/{connectedRealmId}/auctions");
 
-        return auctionData.GetDomainAuctions()
-            .Select(auc => new AuctionLog() { Auction = auc, RetrievedUtc = now })
-            .ToArray();
+        return auctionData.GetDomainAuctions(now).ToArray();
     }
 
     public async Task<Item> GetItemAsync(long itemId)

@@ -3,7 +3,6 @@ using AuctionData.Application.Entities.Auction;
 using AuctionData.Application.Services.BlizzardApi;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 
 namespace AuctionData.Application.Features;
 
@@ -26,38 +25,88 @@ public static class ProcessAuctionData
         {
             var auctionData = await _client.RequestConnectedRealmDataAsync(request.ConnectedRealmId);
 
-            await AddUnknownItems(auctionData, cancellationToken);
+            await AddUnknownItemsAsync(auctionData, cancellationToken);
 
-            await LinkAssociatedItemListings(auctionData, cancellationToken);
+            await UpdateAndLinkItemsAsync(auctionData, cancellationToken);
 
-            _dbContext.AuctionLogs.AddRange(auctionData);
+
+            // await LinkAssociatedItemListings(auctionData, cancellationToken);
+
+            _dbContext.Auctions.UpdateRange(auctionData);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task LinkAssociatedItemListings(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
+        private async Task UpdateAndLinkItemsAsync(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
-            var auctionIds = auctionData.Select(log => log.Auction.Id).ToList();
+            await UpdateItems(auctionData, cancellationToken);
 
-            var existingAuctions = _dbContext.AuctionLogs
-                .Where(log => auctionIds.Contains(log.Auction.Id))
-                .Select(log => log.Auction)
-                .GroupBy(auc => auc.Id)
-                .Select(group => group.First());
+            await LinkItemToAuction(auctionData, cancellationToken);
 
-            var existingAuctionsDictionary = await existingAuctions.ToDictionaryAsync(auc => auc.Id, auc => auc.ItemListing.Id, cancellationToken);
+            _dbContext.UpdateRange(auctionData);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
 
+        private async Task UpdateItems(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
+        {
+            var auctionIdMap = auctionData.ToDictionary(auc => auc.Id, auc => auc);
+            var presentAuctions = await _dbContext.Auctions
+                .Where(auction => auctionIdMap.Keys.Contains(auction.Id))
+                .ToListAsync(cancellationToken);
 
-            foreach (var al in auctionData)
+            foreach (var presentAuction in presentAuctions)
             {
-                al.Auction.ItemListing.Id = existingAuctionsDictionary.GetValueOrDefault(al.Auction.Id);
+                var newAuctionState = auctionIdMap[presentAuction.Id];
+
+                newAuctionState.FirstSeen = presentAuction.FirstSeen;
+                if (newAuctionState.ExpectedExpiry < presentAuction.ExpectedExpiry)
+                {
+                    newAuctionState.ExpectedExpiry = presentAuction.ExpectedExpiry;
+                }
             }
         }
 
-        private async Task AddUnknownItems(IReadOnlyCollection<AuctionLog> auctionData, CancellationToken cancellationToken)
+        private async Task LinkItemToAuction(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
-            var itemIds = auctionData.Select(auc => auc.Auction.ItemListing.ItemId).Distinct().ToList();
+            var itemIds = new HashSet<long>(auctionData.Select(auc => auc.Item.Id));
 
-            var knownItemIds = await _dbContext.Items.Where(item => itemIds.Contains(item.Id)).Select(item => item.Id).ToListAsync();
+            var items = await _dbContext.Items
+                .Where(item => itemIds.Contains(item.Id))
+                .ToListAsync(cancellationToken);
+
+            var itemMap = items.ToDictionary(item => item.Id, item => item);
+
+            foreach (var auction in auctionData)
+            {
+                auction.Item = itemMap[auction.Item.Id];
+            }
+        }
+
+        // private async Task LinkAssociatedItemListings(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
+        // {
+        //     var auctionIds = auctionData.Select(log => log.Auction.Id).ToList();
+
+        //     var existingAuctions = _dbContext.AuctionLogs
+        //         .Where(log => auctionIds.Contains(log.Auction.Id))
+        //         .Select(log => log.Auction)
+        //         .GroupBy(auc => auc.Id)
+        //         .Select(group => group.First());
+
+        //     var existingAuctionsDictionary = await existingAuctions.ToDictionaryAsync(auc => auc.Id, auc => auc.ItemListing.Id, cancellationToken);
+
+
+        //     foreach (var al in auctionData)
+        //     {
+        //         al.Auction.ItemListing.Id = existingAuctionsDictionary.GetValueOrDefault(al.Auction.Id);
+        //     }
+        // }
+
+        private async Task AddUnknownItemsAsync(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
+        {
+            var itemIds = auctionData.Select(auc => auc.Item.Id).Distinct().ToList();
+
+            var knownItemIds = await _dbContext.Items.Where(item => itemIds.Contains(item.Id))
+                .Select(item => item.Id)
+                .ToListAsync(cancellationToken);
 
             var unknownIds = itemIds.Except(knownItemIds);
 
@@ -65,6 +114,7 @@ public static class ProcessAuctionData
             {
                 _dbContext.Items.Add(item);
             }
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 

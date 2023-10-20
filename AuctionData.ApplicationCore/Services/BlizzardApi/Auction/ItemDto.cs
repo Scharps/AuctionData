@@ -55,20 +55,4 @@ internal sealed class ItemDto
         PetQualityId = petQualityId;
         PetSpeciesId = petSpeciesId;
     }
-
-    public ItemListing ToItemListing()
-    {
-        var modifiers = Modifiers?.Select(m => new Modifier()
-        {
-            Value = m.Value,
-            Type = m.Type
-        })
-            .ToArray();
-        return new()
-        {
-            ItemId = Id,
-            Bonuses = BonusLists ?? Array.Empty<long>(),
-            Modifiers = modifiers ?? Array.Empty<Modifier>()
-        };
-    }
 }

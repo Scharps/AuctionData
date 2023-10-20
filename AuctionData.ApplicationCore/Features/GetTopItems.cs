@@ -21,9 +21,9 @@ public static class GetTopItems
 
         public async Task<TopItemsResult> Handle(GetTopItemsCommand request, CancellationToken cancellationToken)
         {
-            var query = _dbContext.AuctionLogs
-                        .GroupBy(auc => auc.Auction.ItemListing.ItemId)
-                        .Select(itemAuctions => new { Item = itemAuctions.Key, MarketCap = itemAuctions.Sum(auc => auc.Auction.Buyout) })
+            var query = _dbContext.Auctions
+                        .GroupBy(auc => auc.Item.Id)
+                        .Select(itemAuctions => new { Item = itemAuctions.Key, MarketCap = itemAuctions.Sum(auc => auc.Buyout) })
                         .OrderByDescending(itemAuc => itemAuc.MarketCap)
                         .Take(10)
                         .Select(itemAuctions => itemAuctions.Item);
