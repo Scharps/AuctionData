@@ -7,7 +7,7 @@ public sealed class Auction : Entity
     public RegionAndRealmGroup ConnectedRealm { get; set; } = null!;
     public DateTime FirstSeen { get; set; }
     public DateTime LastSeen { get; set; }
-    public Item.Item Item { get; set; } = null!;
+    public Item.Item? Item { get; set; } = null!;
     public string InternalBonuses { get; private set; } = string.Empty;
     [NotMapped]
     public long[] Bonuses
