@@ -38,7 +38,7 @@ public static class ProcessAuctionData
 
         private async Task UpdateAndLinkItemsAsync(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
-            await UpdateItems(auctionData, cancellationToken);
+            await UpdateAuctions(auctionData, cancellationToken);
 
             await LinkItemToAuction(auctionData, cancellationToken);
 
@@ -46,7 +46,7 @@ public static class ProcessAuctionData
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task UpdateItems(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
+        private async Task UpdateAuctions(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
             var auctionIdMap = auctionData.ToDictionary(auc => auc.Id, auc => auc);
             var presentAuctions = await _dbContext.Auctions
@@ -58,7 +58,7 @@ public static class ProcessAuctionData
                 var newAuctionState = auctionIdMap[presentAuction.Id];
 
                 newAuctionState.FirstSeen = presentAuction.FirstSeen;
-                if (newAuctionState.ExpectedExpiry < presentAuction.ExpectedExpiry)
+                if (newAuctionState.ExpectedExpiry > presentAuction.ExpectedExpiry)
                 {
                     newAuctionState.ExpectedExpiry = presentAuction.ExpectedExpiry;
                 }
