@@ -42,7 +42,7 @@ public static class ProcessAuctionData
 
             await LinkItemToAuction(auctionData, cancellationToken);
 
-            _dbContext.UpdateRange(auctionData);
+            _dbContext.Auctions.UpdateRange(auctionData);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -67,7 +67,7 @@ public static class ProcessAuctionData
 
         private async Task LinkItemToAuction(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
-            var itemIds = new HashSet<long>(auctionData.Select(auc => auc.Item.Id));
+            var itemIds = new HashSet<long>(auctionData.Select(auc => auc.Item!.Id));
 
             var items = await _dbContext.Items
                 .Where(item => itemIds.Contains(item.Id))
@@ -77,7 +77,7 @@ public static class ProcessAuctionData
 
             foreach (var auction in auctionData)
             {
-                auction.Item = itemMap[auction.Item.Id];
+                auction.Item = itemMap.GetValueOrDefault(auction.Item!.Id); // Item can be null as item retrieved from Blizzard API can return 404 #19
             }
         }
 
@@ -102,7 +102,7 @@ public static class ProcessAuctionData
 
         private async Task AddUnknownItemsAsync(IReadOnlyCollection<Auction> auctionData, CancellationToken cancellationToken)
         {
-            var itemIds = auctionData.Select(auc => auc.Item.Id).Distinct().ToList();
+            var itemIds = auctionData.Select(auc => auc.Item!.Id).Distinct().ToList();
 
             var knownItemIds = await _dbContext.Items.Where(item => itemIds.Contains(item.Id))
                 .Select(item => item.Id)

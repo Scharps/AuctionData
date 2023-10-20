@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AuctionData.Application.Entities.Auction;
 
 namespace AuctionData.Application.Services.BlizzardApi.Auction;
 
@@ -49,7 +50,10 @@ internal sealed class AuctionDto
             },
             FirstSeen = auctionReceivedAt,
             LastSeen = auctionReceivedAt,
-            Modifiers = Item.Modifiers.Select(m => new Entities.Auction.Modifier { Value = m.Value, Type = m.Type }).ToArray(),
+            Modifiers = Item.Modifiers?
+            .Select(m => new Entities.Auction.Modifier { Value = m.Value, Type = m.Type })
+            .ToArray() ?? Array.Empty<Modifier>(),
+            Bonuses = Item.BonusLists ?? Array.Empty<long>(),
             Bid = Bid,
             Buyout = Buyout,
             Quantity = Quantity,
