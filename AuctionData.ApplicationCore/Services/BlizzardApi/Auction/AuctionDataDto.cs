@@ -28,8 +28,8 @@ internal sealed class AuctionDataDto
         Commodities = commodities;
     }
 
-    public IEnumerable<Entities.Auction.Auction> GetDomainAuctions()
+    public IEnumerable<Entities.Auction.Auction> GetDomainAuctions(DateTime receivedAt)
     {
-        return Auctions.Select(a => a.ToAuction());
+        return Auctions.Select(a => a.ToAuction(receivedAt));
     }
 }

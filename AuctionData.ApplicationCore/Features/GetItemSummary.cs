@@ -28,16 +28,17 @@ public static class GetItemSummary
         {
             const string PlaceHolderName = "Place holder";
 
-            var itemSummaryQuery = _dbContext.AuctionLogs
-                                        .Where(auc => auc.Auction.ItemListing.ItemId == request.ItemId)
-                                        .GroupBy(auc => auc.Auction.ItemListing.ItemId)
-                                        .Select(itemAuctions => new ItemSummaryResult(itemAuctions.Key,
-                                                                                      PlaceHolderName,
-                                                                                      itemAuctions.Min(auc => auc.Auction.Buyout / auc.Auction.Quantity),
-                                                                                      -1,
-                                                                                      itemAuctions.Sum(auc => auc.Auction.Quantity),
-                                                                                      itemAuctions.Sum(auc => auc.Auction.Buyout)));
-            return itemSummaryQuery.SingleOrDefaultAsync();
+            var itemSummaryQuery = _dbContext.Auctions
+                                        .Where(auc => auc.Item != null && auc.Item.Id == request.ItemId)
+                                        .GroupBy(auc => auc.Item!.Id)
+                                        .Select(itemAuctions => new ItemSummaryResult(
+                                            itemAuctions.Key,
+                                            PlaceHolderName,
+                                            itemAuctions.Min(auc => auc.Buyout / auc.Quantity),
+                                            -1,
+                                            itemAuctions.Sum(auc => auc.Quantity),
+                                            itemAuctions.Sum(auc => auc.Buyout)));
+            return itemSummaryQuery.SingleOrDefaultAsync(cancellationToken);
         }
     }
 }

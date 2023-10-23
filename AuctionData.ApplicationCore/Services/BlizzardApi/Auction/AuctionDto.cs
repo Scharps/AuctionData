@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AuctionData.Application.Entities.Auction;
 
 namespace AuctionData.Application.Services.BlizzardApi.Auction;
 
@@ -38,24 +39,32 @@ internal sealed class AuctionDto
         Bid = bid;
     }
 
-    public Entities.Auction.Auction ToAuction()
+    public Entities.Auction.Auction ToAuction(DateTime auctionReceivedAt)
     {
-        var itemListing = Item.ToItemListing();
         return new()
         {
             Id = Id,
-            ItemListing = itemListing,
+            Item = new Entities.Item.Item
+            {
+                Id = Item.Id
+            },
+            FirstSeen = auctionReceivedAt,
+            LastSeen = auctionReceivedAt,
+            Modifiers = Item.Modifiers?
+            .Select(m => new Entities.Auction.Modifier { Value = m.Value, Type = m.Type })
+            .ToArray() ?? Array.Empty<Modifier>(),
+            Bonuses = Item.BonusLists ?? Array.Empty<long>(),
+            Bid = Bid,
             Buyout = Buyout,
             Quantity = Quantity,
-            TimeLeft = TimeLeft switch
+            ExpectedExpiry = TimeLeft switch
             {
-                TimeLeftDto.Long => Entities.Auction.TimeLeft.Long,
-                TimeLeftDto.Medium => Entities.Auction.TimeLeft.Medium,
-                TimeLeftDto.Short => Entities.Auction.TimeLeft.Short,
-                TimeLeftDto.VeryLong => Entities.Auction.TimeLeft.VeryLong,
-                _ => throw new NotSupportedException($"Unknown TimeLeft duration: {TimeLeft}")
-            },
-            Bid = Bid,
+                TimeLeftDto.Long => auctionReceivedAt + TimeSpan.FromHours(12),
+                TimeLeftDto.Medium => auctionReceivedAt + TimeSpan.FromHours(2),
+                TimeLeftDto.Short => auctionReceivedAt + TimeSpan.FromMinutes(30),
+                TimeLeftDto.VeryLong => auctionReceivedAt + TimeSpan.FromHours(48),
+                _ => throw new NotSupportedException($"Cannot map {nameof(TimeLeft)}: {TimeLeft} to {nameof(Entities.Auction.Auction.ExpectedExpiry)}")
+            }
         };
     }
 }
