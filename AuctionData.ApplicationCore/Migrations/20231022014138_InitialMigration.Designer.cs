@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionData.ApplicationCore.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    [Migration("20231020223439_NullableItem")]
-    partial class NullableItem
+    [Migration("20231022014138_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,9 +30,6 @@ namespace AuctionData.ApplicationCore.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("Buyout")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("ConnectedRealmId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset>("ExpectedExpiry")
@@ -55,8 +52,6 @@ namespace AuctionData.ApplicationCore.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ConnectedRealmId");
 
                     b.HasIndex("ItemId");
 
@@ -119,17 +114,9 @@ namespace AuctionData.ApplicationCore.Migrations
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
-                    b.HasOne("AuctionData.Application.Entities.Auction.RegionAndRealmGroup", "ConnectedRealm")
-                        .WithMany()
-                        .HasForeignKey("ConnectedRealmId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("AuctionData.Application.Entities.Item.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId");
-
-                    b.Navigation("ConnectedRealm");
 
                     b.Navigation("Item");
                 });

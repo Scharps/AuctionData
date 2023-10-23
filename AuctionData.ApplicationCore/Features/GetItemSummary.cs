@@ -29,8 +29,8 @@ public static class GetItemSummary
             const string PlaceHolderName = "Place holder";
 
             var itemSummaryQuery = _dbContext.Auctions
-                                        .Where(auc => auc.Item.Id == request.ItemId)
-                                        .GroupBy(auc => auc.Item.Id)
+                                        .Where(auc => auc.Item != null && auc.Item.Id == request.ItemId)
+                                        .GroupBy(auc => auc.Item!.Id)
                                         .Select(itemAuctions => new ItemSummaryResult(
                                             itemAuctions.Key,
                                             PlaceHolderName,
@@ -38,7 +38,7 @@ public static class GetItemSummary
                                             -1,
                                             itemAuctions.Sum(auc => auc.Quantity),
                                             itemAuctions.Sum(auc => auc.Buyout)));
-            return itemSummaryQuery.SingleOrDefaultAsync();
+            return itemSummaryQuery.SingleOrDefaultAsync(cancellationToken);
         }
     }
 }

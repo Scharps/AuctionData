@@ -4,7 +4,7 @@ namespace AuctionData.Application.Entities.Auction;
 
 public sealed class Auction : Entity
 {
-    public RegionAndRealmGroup ConnectedRealm { get; set; } = null!;
+    // public RegionAndRealmGroup ConnectedRealm { get; set; } = null!;
     public DateTime FirstSeen { get; set; }
     public DateTime LastSeen { get; set; }
     public Item.Item? Item { get; set; } = null!;

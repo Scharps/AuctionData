@@ -29,9 +29,6 @@ namespace AuctionData.ApplicationCore.Migrations
                     b.Property<long>("Buyout")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("ConnectedRealmId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTimeOffset>("ExpectedExpiry")
                         .HasColumnType("TEXT");
 
@@ -52,8 +49,6 @@ namespace AuctionData.ApplicationCore.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ConnectedRealmId");
 
                     b.HasIndex("ItemId");
 
@@ -116,17 +111,9 @@ namespace AuctionData.ApplicationCore.Migrations
 
             modelBuilder.Entity("AuctionData.Application.Entities.Auction.Auction", b =>
                 {
-                    b.HasOne("AuctionData.Application.Entities.Auction.RegionAndRealmGroup", "ConnectedRealm")
-                        .WithMany()
-                        .HasForeignKey("ConnectedRealmId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("AuctionData.Application.Entities.Item.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId");
-
-                    b.Navigation("ConnectedRealm");
 
                     b.Navigation("Item");
                 });

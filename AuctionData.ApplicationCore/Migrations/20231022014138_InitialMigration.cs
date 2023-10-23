@@ -44,10 +44,9 @@ namespace AuctionData.ApplicationCore.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ConnectedRealmId = table.Column<long>(type: "INTEGER", nullable: false),
                     FirstSeen = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastSeen = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ItemId = table.Column<long>(type: "INTEGER", nullable: false),
+                    ItemId = table.Column<long>(type: "INTEGER", nullable: true),
                     InternalBonuses = table.Column<string>(type: "TEXT", nullable: false),
                     Bid = table.Column<long>(type: "INTEGER", nullable: true),
                     Buyout = table.Column<long>(type: "INTEGER", nullable: false),
@@ -58,17 +57,10 @@ namespace AuctionData.ApplicationCore.Migrations
                 {
                     table.PrimaryKey("PK_Auctions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Auctions_ConnectedRealms_ConnectedRealmId",
-                        column: x => x.ConnectedRealmId,
-                        principalTable: "ConnectedRealms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Auctions_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -92,11 +84,6 @@ namespace AuctionData.ApplicationCore.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Auctions_ConnectedRealmId",
-                table: "Auctions",
-                column: "ConnectedRealmId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Auctions_ItemId",
                 table: "Auctions",
                 column: "ItemId");
@@ -111,13 +98,13 @@ namespace AuctionData.ApplicationCore.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ConnectedRealms");
+
+            migrationBuilder.DropTable(
                 name: "Modifiers");
 
             migrationBuilder.DropTable(
                 name: "Auctions");
-
-            migrationBuilder.DropTable(
-                name: "ConnectedRealms");
 
             migrationBuilder.DropTable(
                 name: "Items");
